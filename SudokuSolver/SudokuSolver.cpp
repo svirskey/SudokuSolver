@@ -40,7 +40,7 @@ bool SudokuSolver::checkField()
 							}
 						}
 					}
-					Square(cell, i, j); //  check duplicates in square 3x3
+					checkSquare(cell, i, j); //  check duplicates in square 3x3
 
 					if (field[i][j].size() == 2)
 					{
@@ -84,18 +84,11 @@ bool SudokuSolver::solve()
 
 		int i0 = -1, j0 = -1, min = -1;
 
-		for (int i = 0; i < size; i++) // find smallest list if possible variants of number
+		for (int i = 0; i < size; i++) // find smallest count of possible numbers
 		{
 			for (int j = 0; j < size; j++)
 			{
-				if (min == -1 && field[i][j][0] == 0)
-				{
-					min = field[i][j].size();
-					i0 = i;
-					j0 = j;
-				}
-
-				if (field[i][j][0] == 0 && min > field[i][j].size())
+				if (field[i][j][0] == 0 && (min == -1 || min > field[i][j].size()))
 				{
 					min = field[i][j].size();
 					i0 = i;
@@ -106,9 +99,9 @@ bool SudokuSolver::solve()
 
 		// recursion
 
-		std::vector<int> oldNums = field[i0][j0]; // old set of possible variants
+		std::vector<int> oldNums = field[i0][j0]; // set of possible numbers before recursion 
 
-		auto oldField = field;
+		std::vector<std::vector<std::vector<int>>> oldField = field;
 
 		field[i0][j0].clear();
 		field[i0][j0].push_back(oldNums[oldNums.size() - 1]);
@@ -131,7 +124,7 @@ void SudokuSolver::outputFile(std::string path)
 	}
 	else
 	{
-		std::ofstream fout(path, std::ios_base::out | std::ios_base::app); // out - вставка в поток, app - проход до конца потока
+		std::ofstream fout(path, std::ios_base::out);
 
 		if (!fout.good())
 		{
@@ -144,9 +137,9 @@ void SudokuSolver::outputFile(std::string path)
 
 std::ostream& operator <<(std::ostream& io, SudokuSolver& solve)
 {
-	for (size_t i = 0; i < solve.field.size(); i++)
+	for (int i = 0; i < solve.size; i++)
 	{
-		for (size_t j = 0; j < solve.field[i].size(); j++)
+		for (int j = 0; j < solve.size; j++)
 		{
 			io << solve.field[i][j][0] << " ";
 		}
@@ -209,7 +202,7 @@ void SudokuSolver::inputFile(std::string path)
 	}
 }
 
-void SudokuSolver::Square(int& sch, const int str, const int col)
+void SudokuSolver::checkSquare(int& cell, const int str, const int col)
 {
 	int str_to,
 		col_to;
@@ -226,7 +219,7 @@ void SudokuSolver::Square(int& sch, const int str, const int col)
 				if (field[str][col][k - 1] == field[i][j][0])
 				{
 					field[str][col].erase(field[str][col].begin() + k - 1);
-					sch = 0;
+					cell = 0;
 				}
 			}
 		}

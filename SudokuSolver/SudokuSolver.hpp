@@ -3,7 +3,6 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <ostream>
 #include <fstream>
 
 class SudokuSolver
@@ -17,7 +16,7 @@ private:
 
 	void resetData();
 
-	void Square(int& sch, const int str, const int col);
+	void checkSquare(int& cell, const int str, const int col);
 
 	bool checkField();
 
@@ -25,13 +24,13 @@ private:
 
 public:
 
-	SudokuSolver(int a);
+	SudokuSolver(int a = 9);
 
 	void inputFile(std::string path);
 
 	bool solve();
 
-	void outputFile(std::string path = "");
+	void outputFile(std::string path = "Output.txt");
 
 	friend std::ostream& operator <<(std::ostream& io, SudokuSolver& solve);
 };
