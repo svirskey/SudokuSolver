@@ -1,5 +1,159 @@
 #include "SudokuSolver.hpp"
 
+SudokuSolver::SudokuSolver(int size)
+{
+	this->size = size;
+	field.resize(size);
+	for (int i = 0; i < size; i++)
+	{
+		field[i].resize(size);
+	}
+}
+
+void SudokuSolver::inputFile(std::string path)
+{
+	resetData();
+
+	std::ifstream fin(path);
+	if (!fin.good())
+	{
+		std::cerr << "Cannot open file: \"" << path << "\"" << std::endl << std::endl;
+		resetData();
+		fin.close();
+		return;
+	}
+
+	int tmp;
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			try
+			{
+				fin >> tmp;
+			}
+			catch (const std::exception& exc)
+			{
+				std::cerr << "Error! Exception: " << exc.what();
+				resetData();
+				return;
+			}
+			field[i][j].push_back(tmp);
+		}
+	}
+}
+
+void SudokuSolver::resetData()
+{
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			field[i][j].clear();
+		}
+	}
+}
+
+void SudokuSolver::outputFile(std::string path)
+{
+	if (path.empty() || path == "")
+	{
+		std::cout << *this << std::endl;
+	}
+	else
+	{
+		std::ofstream fout(path, std::ios_base::out);
+
+		if (!fout.good())
+		{
+			std::cerr << "Cannot open file: \"" << path << "\"" << std::endl << std::endl;
+			return;
+		}
+		std::cout << "Result written to file: " << path << std::endl;
+		fout << *this << "\n";
+	}
+}
+
+std::ostream& operator <<(std::ostream& io, SudokuSolver& solve)
+{
+	for (int i = 0; i < solve.size; i++)
+	{
+		for (int j = 0; j < solve.size; j++)
+		{
+			io << solve.field[i][j][0] << " ";
+		}
+		io << std::endl;
+	}
+	return io;
+}
+
+bool SudokuSolver::solve()
+{
+	fillField();
+
+	do
+	{
+		if (!easySolve())
+			return false;
+
+		if (isSolved())
+			return true;
+
+		int i0 = -1, j0 = -1, min = -1;
+
+		for (int i = 0; i < size; i++) // find smallest count of possible numbers
+		{
+			for (int j = 0; j < size; j++)
+			{
+				if (field[i][j].size() > 1 && (min == -1 || min > field[i][j].size()))
+				{
+					min = field[i][j].size();
+					i0 = i;
+					j0 = j;
+				}
+			}
+		}
+
+		//recursion
+
+		std::vector<int> oldNums = field[i0][j0]; // set of possible numbers before recursion 
+
+		std::vector<std::vector<std::vector<int>>> oldField = field;
+
+		field[i0][j0].clear();
+		field[i0][j0].push_back(oldNums[oldNums.size() - 1]);
+
+		if (!solve())
+		{
+			field = oldField;
+			field[i0][j0].pop_back();
+		}
+		else
+			return true;
+	} while (true);
+
+	return true;
+}
+
+void SudokuSolver::fillField()
+{
+	for (int i = 0; i < size; i++) //  current row
+	{
+		for (int j = 0; j < size; j++) // current col
+		{
+			if (field[i][j][0] == 0)
+			{
+				field[i][j].pop_back();
+
+				for (int k = 0; k < size; k++)   // push possible numbers in cell and then remove which have met
+				{
+					field[i][j].push_back(k + 1);
+				}
+			}
+		}
+	}
+}
+
 bool SudokuSolver::easySolve()
 {
 	int cell = 0;
@@ -55,160 +209,6 @@ bool SudokuSolver::isSolved()
 		}
 	}
 	return true;
-}
-
-void SudokuSolver::fillField()
-{
-	for (int i = 0; i < size; i++) //  current row
-	{
-		for (int j = 0; j < size; j++) // current col
-		{
-			if (field[i][j][0] == 0)
-			{
-				field[i][j].pop_back();
-
-				for (int k = 0; k < size; k++)   // push possible numbers in cell and then remove which have met
-				{
-					field[i][j].push_back(k + 1);
-				}
-			}
-		}
-	}
-}
-
-bool SudokuSolver::solve()
-{
-	fillField();
-
-	do
-	{
-		if (!easySolve())
-			return false;
-
-		if (isSolved())
-			return true;
-
-		int i0 = -1, j0 = -1, min = -1;
-
-		for (int i = 0; i < size; i++) // find smallest count of possible numbers
-		{
-			for (int j = 0; j < size; j++)
-			{
-				if (field[i][j].size() > 1 && (min == -1 || min > field[i][j].size()))
-				{
-					min = field[i][j].size();
-					i0 = i;
-					j0 = j;
-				}
-			}
-		}
-
-		//recursion
-
-		std::vector<int> oldNums = field[i0][j0]; // set of possible numbers before recursion 
-
-		std::vector<std::vector<std::vector<int>>> oldField = field;
-
-		field[i0][j0].clear();
-		field[i0][j0].push_back(oldNums[oldNums.size() - 1]);
-
-		if (!solve())
-		{
-			field = oldField;
-			field[i0][j0].pop_back();
-		}
-		else
-			return true;
-	} while (true);
-
-	return true;
-}
-
-void SudokuSolver::outputFile(std::string path)
-{
-	if (path.empty() || path == "")
-	{
-		std::cout << *this << std::endl;
-	}
-	else
-	{
-		std::ofstream fout(path, std::ios_base::out);
-
-		if (!fout.good())
-		{
-			std::cerr << "Cannot open file: \"" << path << "\"" << std::endl << std::endl;
-			return;
-		}
-		std::cout << "Result written to file: " << path << std::endl;
-		fout << *this << "\n";
-	}
-}
-
-std::ostream& operator <<(std::ostream& io, SudokuSolver& solve)
-{
-	for (int i = 0; i < solve.size; i++)
-	{
-		for (int j = 0; j < solve.size; j++)
-		{
-			io << solve.field[i][j][0] << " ";
-		}
-		io << std::endl;
-	}
-	return io;
-}
-
-void SudokuSolver::resetData()
-{
-	for (int i = 0; i < size; i++)
-	{
-		for (int j = 0; j < size; j++)
-		{
-			field[i][j].clear();
-		}
-	}
-}
-
-SudokuSolver::SudokuSolver(int size)
-{
-	this->size = size;
-	field.resize(size);
-	for (int i = 0; i < size; i++)
-	{
-		field[i].resize(size);
-	}
-}
-
-void SudokuSolver::inputFile(std::string path)
-{
-	resetData();
-
-	std::ifstream fin(path);
-	if (!fin.good())
-	{
-		std::cerr << "Cannot open file: \"" << path << "\"" << std::endl << std::endl;
-		resetData();
-		fin.close();
-		return;
-	}
-
-	int tmp;
-	for (int i = 0; i < size; i++)
-	{
-		for (int j = 0; j < size; j++)
-		{
-			try
-			{
-				fin >> tmp;
-			}
-			catch (const std::exception& exc)
-			{
-				std::cerr << "Error! Exception: " << exc.what();
-				resetData();
-				return;
-			}
-			field[i][j].push_back(tmp);
-		}
-	}
 }
 
 void SudokuSolver::checkSquare(int& cell, const int str, const int col)

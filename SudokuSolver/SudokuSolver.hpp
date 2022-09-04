@@ -23,6 +23,7 @@ private:
 	bool isSolved();
 
 	void fillField();
+
 public:
 
 	SudokuSolver(int size = 9);
