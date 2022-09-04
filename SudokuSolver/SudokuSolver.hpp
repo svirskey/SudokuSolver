@@ -18,13 +18,14 @@ private:
 
 	void checkSquare(int& cell, const int str, const int col);
 
-	bool checkField();
+	bool easySolve();
 
 	bool isSolved();
 
+	void fillField();
 public:
 
-	SudokuSolver(int a = 9);
+	SudokuSolver(int size = 9);
 
 	void inputFile(std::string path);
 

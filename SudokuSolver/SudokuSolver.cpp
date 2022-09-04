@@ -1,6 +1,6 @@
 #include "SudokuSolver.hpp"
 
-bool SudokuSolver::checkField()
+bool SudokuSolver::easySolve()
 {
 	int cell = 0;
 
@@ -10,44 +10,31 @@ bool SudokuSolver::checkField()
 		{
 			for (int j = 0; j < size; j++) // current col
 			{
-				if (field[i][j][0] == 0)
+				if (field[i][j].size() > 1)
 				{
-					if (field[i][j].size() == 1)
-					{
-						for (int k = 0; k < size; k++)   // push possible numbers in cell and then remove which have met
-						{
-							field[i][j].push_back(k + 1);
-						}
-					}
-
 					for (int k = 0; k < size; k++)
 					{
-						for (int l = field[i][j].size(); l > 1; l--) // check duplicates in row
+						for (int l = field[i][j].size() - 1; l >= 0; l--) // check duplicates in row
 						{
-							if (field[i][j][l - 1] == field[i][k][0])
+							if (j != k && field[i][k].size() == 1 && field[i][j][l] == field[i][k][0]) 
 							{
-								field[i][j].erase(field[i][j].begin() + l - 1);
+								field[i][j].erase(field[i][j].begin() + l);
 								cell = 0;
 							}
 						}
 
-						for (int l = field[i][j].size(); l > 1; l--) //  check duplicates in col
+						for (int l = field[i][j].size() - 1; l >= 0; l--) //  check duplicates in col
 						{
-							if (field[i][j][l - 1] == field[k][j][0])
+							if (i != k && field[k][j].size() == 1 && field[i][j][l] == field[k][j][0])
 							{
-								field[i][j].erase(field[i][j].begin() + l - 1);
+								field[i][j].erase(field[i][j].begin() + l);
 								cell = 0;
 							}
 						}
 					}
 					checkSquare(cell, i, j); //  check duplicates in square 3x3
 
-					if (field[i][j].size() == 2)
-					{
-						field[i][j].erase(field[i][j].begin());
-						cell = 0;
-					}
-					else if (field[i][j].size() == 1 && field[i][j][0] == 0)
+					if (field[i][j].size() == 0) // no possible numbers for this cell
 						return false;
 				}
 				cell++;
@@ -63,20 +50,39 @@ bool SudokuSolver::isSolved()
 	{
 		for (int j = 0; j < size; j++)
 		{
-			if (field[i][j].size() > 1)
+			if (field[i][j].size() != 1)
 				return false;
 		}
 	}
 	return true;
 }
 
+void SudokuSolver::fillField()
+{
+	for (int i = 0; i < size; i++) //  current row
+	{
+		for (int j = 0; j < size; j++) // current col
+		{
+			if (field[i][j][0] == 0)
+			{
+				field[i][j].pop_back();
+
+				for (int k = 0; k < size; k++)   // push possible numbers in cell and then remove which have met
+				{
+					field[i][j].push_back(k + 1);
+				}
+			}
+		}
+	}
+}
+
 bool SudokuSolver::solve()
 {
-	if (field[0][0].empty())
-		return false;
+	fillField();
+
 	do
 	{
-		if (!checkField())
+		if (!easySolve())
 			return false;
 
 		if (isSolved())
@@ -88,7 +94,7 @@ bool SudokuSolver::solve()
 		{
 			for (int j = 0; j < size; j++)
 			{
-				if (field[i][j][0] == 0 && (min == -1 || min > field[i][j].size()))
+				if (field[i][j].size() > 1 && (min == -1 || min > field[i][j].size()))
 				{
 					min = field[i][j].size();
 					i0 = i;
@@ -97,7 +103,7 @@ bool SudokuSolver::solve()
 			}
 		}
 
-		// recursion
+		//recursion
 
 		std::vector<int> oldNums = field[i0][j0]; // set of possible numbers before recursion 
 
@@ -111,7 +117,9 @@ bool SudokuSolver::solve()
 			field = oldField;
 			field[i0][j0].pop_back();
 		}
-	} while (!solve());
+		else
+			return true;
+	} while (true);
 
 	return true;
 }
@@ -131,6 +139,7 @@ void SudokuSolver::outputFile(std::string path)
 			std::cerr << "Cannot open file: \"" << path << "\"" << std::endl << std::endl;
 			return;
 		}
+		std::cout << "Result written to file: " << path << std::endl;
 		fout << *this << "\n";
 	}
 }
@@ -159,13 +168,13 @@ void SudokuSolver::resetData()
 	}
 }
 
-SudokuSolver::SudokuSolver(int a)
+SudokuSolver::SudokuSolver(int size)
 {
-	size = a;
-	field.resize(a);
-	for (int i = 0; i < a; i++)
+	this->size = size;
+	field.resize(size);
+	for (int i = 0; i < size; i++)
 	{
-		field[i].resize(a);
+		field[i].resize(size);
 	}
 }
 
@@ -207,18 +216,18 @@ void SudokuSolver::checkSquare(int& cell, const int str, const int col)
 	int str_to,
 		col_to;
 
-	str_to = (str < 3) ? 3 : (str < 6) ? 6 : (str < 9) ? 9 : 0;
-	col_to = (col < 3) ? 3 : (col < 6) ? 6 : (col < 9) ? 9 : 0;
+	str_to = (str < 3) ? 3 : (str < 6) ? 6 : 9;
+	col_to = (col < 3) ? 3 : (col < 6) ? 6 : 9;
 
 	for (int i = str_to - 3; i < str_to; i++)
 	{
 		for (int j = col_to - 3; j < col_to; j++)
 		{
-			for (int k = field[str][col].size(); k > 1; k--)
+			for (int k = field[str][col].size() - 1; k >= 0; k--)
 			{
-				if (field[str][col][k - 1] == field[i][j][0])
+				if (i != str && j != col && field[i][j].size() == 1 && field[str][col][k] == field[i][j][0])
 				{
-					field[str][col].erase(field[str][col].begin() + k - 1);
+					field[str][col].erase(field[str][col].begin() + k);
 					cell = 0;
 				}
 			}
