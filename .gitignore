@@ -1,5 +1,6 @@
 *.o
-a.exe
-a.out
+result.exe
+result
 *.s
 *.asm
+output.txt
