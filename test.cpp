@@ -9,8 +9,10 @@ int main(int argc, char* argv[])
 
 	svirskey::sudoku_solver solver(fin);
 
-	if (solver.hard_solve())
-		fout << solver;
+	svirskey::sudoku_field result = solver.solve();
+
+	if (result.is_solved())
+		result.print(fout);
 	else
 		std::cerr << "Cannot solve sudoku..." << std::endl;
 }
