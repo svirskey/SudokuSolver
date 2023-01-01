@@ -12,9 +12,26 @@ namespace svirskey
 	class sudoku_field final : public vector_2d<int32_t, sudoku_size>
 	{
 	private:
-		using vector_2d<int32_t, sudoku_size>::size_outer_;
-		using vector_2d<int32_t, sudoku_size>::size_middle_;
 		using vector_2d<int32_t, sudoku_size>::field_;
+
+		bool has_square_duplicates(const int32_t& str, const int32_t& col) const
+		{
+			int32_t str_to,
+				col_to;
+
+			str_to = (str < 3) ? 3 : (str < 6) ? 6 : 9;
+			col_to = (col < 3) ? 3 : (col < 6) ? 6 : 9;
+
+			for (int32_t i = str_to - 3; i < str_to; ++i)
+			{
+				for (int32_t j = col_to - 3; j < col_to; ++j)
+				{
+					if (i != str && j != col  && field_[str][col] == field_[i][j])
+						return true;
+				}
+			}
+			return false;
+		}
 
 	public:
 
@@ -22,14 +39,30 @@ namespace svirskey
 
 		sudoku_field(const vector_3d<int32_t, sudoku_size, sudoku_size>& other) : vector_2d<int32_t, sudoku_size>(other) {}
 	
-		bool is_solved() const //TODO check for correct
+		bool is_solved() const
 		{
-			for (int32_t i = 0; i < size_outer_; ++i)
+			for (int32_t i = 0; i < sudoku_size; ++i)
 			{
-				for (int32_t j = 0; j < size_middle_; ++j)
+				for (int32_t j = 0; j < sudoku_size; ++j)
 				{
 					if (field_[i][j] == 0)
 						return false;
+				}
+			}
+
+			for (int32_t i = 0; i < sudoku_size; ++i) //  current row
+			{
+				for (int32_t j = 0; j < sudoku_size; ++j) // current col
+				{
+					for (int32_t k = 0; k < sudoku_size; ++k)
+					{
+						if (j != k && field_[i][j] == field_[i][k]) //  check duplicates in row
+							return false;
+						if (i != k  && field_[i][j] == field_[k][j]) // check duplicates in col
+							return false;
+					}
+					if (has_square_duplicates(i, j)) //  check duplicates in square 3x3
+						return false; 
 				}
 			}
 			return true;
@@ -44,7 +77,7 @@ namespace svirskey
 
 		int32_t size_ = sudoku_size;
 
-		void check_square(int32_t cell, const int32_t str, const int32_t col)
+		void erase_with_square(int32_t cell, const int32_t str, const int32_t col)
 		{
 			int32_t str_to,
 				col_to;
@@ -68,6 +101,25 @@ namespace svirskey
 			}
 		}
 
+		bool has_square_duplicates(const int32_t& str, const int32_t& col)
+		{
+			int32_t str_to,
+				col_to;
+
+			str_to = (str < 3) ? 3 : (str < 6) ? 6 : 9;
+			col_to = (col < 3) ? 3 : (col < 6) ? 6 : 9;
+
+			for (int32_t i = str_to - 3; i < str_to; ++i)
+			{
+				for (int32_t j = col_to - 3; j < col_to; ++j)
+				{
+					if (i != str && j != col  && field_[str][col][0] == field_[i][j][0])
+						return true;
+				}
+			}
+			return false;
+		}
+
 		void fill_field()
 		{
 			for (int32_t i = 0; i < size_; ++i) //  current row
@@ -87,7 +139,7 @@ namespace svirskey
 			}
 		}
 
-		void clear();
+		void clear(); // TODO 
 
 		bool apply_simple()
 		{
@@ -121,7 +173,7 @@ namespace svirskey
 									}
 								}
 							}
-							check_square(cell, i, j); //  check duplicates in square 3x3
+							erase_with_square(cell, i, j); //  erase duplicates in square 3x3
 
 							if (field_[i][j].size() == 0) // no possible numbers for this cell
 								return false;
@@ -160,9 +212,6 @@ namespace svirskey
 						}
 					}
 				}
-
-				//recursion
-
 				std::vector<int32_t> old_nums = field_[i0][j0]; // set of possible numbers before recursion 
 
 				vector_3d old_field_ = field_;
@@ -170,7 +219,7 @@ namespace svirskey
 				field_[i0][j0].clear();
 				field_[i0][j0].push_back(old_nums[old_nums.size() - 1]);
 
-				if (!apply_recursion()) //TODO for correct check
+				if (!apply_recursion())
 				{
 					field_ = old_field_; 
 					field_[i0][j0].pop_back();
@@ -180,14 +229,30 @@ namespace svirskey
 			} while (true);		
 		}
 
-		bool is_solved() //TODO check for correct
+		bool is_solved()
 		{
 			for (int32_t i = 0; i < size_; ++i)
 			{
 				for (int32_t j = 0; j < size_; ++j)
 				{
-					if (field_[i][j].size() != 1)
+					if (field_[i][j].size() != 1 || field_[i][j][0] == 0)
 						return false;
+				}
+			}
+
+			for (int32_t i = 0; i < size_; ++i) //  current row
+			{
+				for (int32_t j = 0; j < size_; ++j) // current col
+				{
+					for (int32_t k = 0; k < size_; ++k)
+					{
+						if (j != k && field_[i][j][0] == field_[i][k][0]) //  check duplicates in row
+							return false;
+						if (i != k  && field_[i][j][0] == field_[k][j][0]) // check duplicates in col
+							return false;
+					}
+					if (has_square_duplicates(i, j)) //  check duplicates in square 3x3
+						return false; 
 				}
 			}
 			return true;
@@ -199,24 +264,20 @@ namespace svirskey
 
 		sudoku_solver(std::istream& in): field_(in) {}
 
+		//TODO method fill(vector_2d) which will fill field from this 2d vector, should resize all inner vectors to size of 1, maybe call clear() at the beginning
+
 		sudoku_field simple_solve()
 		{
 			fill_field();
 			apply_simple();
-			//field_.print(std::cout);
 			return sudoku_field(field_);
 		}
 
 		sudoku_field solve()
 		{
 			fill_field();
-			//field_.print(std::cout);
 			apply_recursion();
 			return sudoku_field(field_);
-			// if (result_.is_solved())
-			// 	return result_;
-			// else
-			// 	throw std::runtime_error("Cannot solve");
 		}
 	};
 }
