@@ -1,8 +1,6 @@
 #pragma once
 
-#include <vector>
 #include <string>
-#include <iostream>
 #include <fstream>
 #include "vectors.hpp"
 
@@ -22,8 +20,8 @@ namespace svirskey
 
 		sudoku_field() : vector_2d<int32_t, sudoku_size>() {}
 
-		//sudoku_field(const sudoku_field& other) {} //TODO
-
+		sudoku_field(const vector_3d<int32_t, sudoku_size, sudoku_size>& other) : vector_2d<int32_t, sudoku_size>(other) {}
+	
 		bool is_solved() const //TODO check for correct
 		{
 			for (int32_t i = 0; i < size_outer_; ++i)
@@ -41,8 +39,6 @@ namespace svirskey
 	class sudoku_solver final
 	{	
 	private:
-
-		sudoku_field result_;
 
 		vector_3d<int32_t, sudoku_size, sudoku_size, 1> field_;
 
@@ -72,7 +68,7 @@ namespace svirskey
 			}
 		}
 
-		void fill_field_()
+		void fill_field()
 		{
 			for (int32_t i = 0; i < size_; ++i) //  current row
 			{
@@ -93,7 +89,7 @@ namespace svirskey
 
 		void clear();
 
-		void apply_simple()
+		bool apply_simple()
 		{
 			int32_t cell = 0;
 
@@ -128,24 +124,27 @@ namespace svirskey
 							check_square(cell, i, j); //  check duplicates in square 3x3
 
 							if (field_[i][j].size() == 0) // no possible numbers for this cell
-								throw std::runtime_error("invalid data");
+								return false;
 						}
 						++cell;
 					}
 				}
 			}
+			#ifdef LOG_FLAG
+			field_.print(std::cout);
+			#endif
+			return true;
 		}
 
-		void apply_recursion()
+		bool apply_recursion()
 		{
-			fill_field_();
-
 			do // TODO refactoring
 			{
-				apply_simple();
+				if (!apply_simple())
+					return false;
 
-				if (result_.is_solved())
-					return ;
+				if (is_solved())
+					return true;
 
 				int32_t i0 = -1, j0 = -1, min = -1;
 
@@ -171,26 +170,27 @@ namespace svirskey
 				field_[i0][j0].clear();
 				field_[i0][j0].push_back(old_nums[old_nums.size() - 1]);
 
-				apply_recursion();
-				if (!result_.is_solved())
+				if (!apply_recursion()) //TODO for correct check
 				{
-					field_ = old_field_;
+					field_ = old_field_; 
 					field_[i0][j0].pop_back();
 				}
 				else
-					return ;
+					return true;
 			} while (true);		
 		}
 
-		void fill_result_()
+		bool is_solved() //TODO check for correct
 		{
 			for (int32_t i = 0; i < size_; ++i)
 			{
-				for (int32_t j = 0; j < size_; ++j) 
+				for (int32_t j = 0; j < size_; ++j)
 				{
-					result_[i][j] = field_[i][j][0];
+					if (field_[i][j].size() != 1)
+						return false;
 				}
 			}
+			return true;
 		}
 
 	public:
@@ -201,23 +201,22 @@ namespace svirskey
 
 		sudoku_field simple_solve()
 		{
-			fill_result_();
-			result_.print(std::cout);
-			std::cout << std::endl;
+			fill_field();
 			apply_simple();
-			fill_result_();
-			result_.print(std::cout);
-			return result_;
+			//field_.print(std::cout);
+			return sudoku_field(field_);
 		}
 
 		sudoku_field solve()
 		{
+			fill_field();
+			//field_.print(std::cout);
 			apply_recursion();
-			fill_result_();
-			if (result_.is_solved())
-				return result_;
-			else
-				throw std::runtime_error("Cannot solve");
+			return sudoku_field(field_);
+			// if (result_.is_solved())
+			// 	return result_;
+			// else
+			// 	throw std::runtime_error("Cannot solve");
 		}
 	};
 }

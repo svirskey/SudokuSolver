@@ -6,6 +6,10 @@
 
 namespace svirskey
 {
+    template <class T, size_t size_outer, size_t size_middle = size_outer, size_t size_inner = 1>
+    requires (std::is_arithmetic_v<T> && (size_outer > 0 && size_middle > 0 && size_inner > 0))
+	class vector_3d;
+    
 	template<class T, size_t size_outer, size_t size_middle = size_outer>
     requires (std::is_arithmetic_v<T> && size_outer > 0 && size_middle > 0)
 	class vector_2d
@@ -26,6 +30,17 @@ namespace svirskey
 		vector_2d(std::istream& in) : size_outer_(size_outer), size_middle_(size_middle), field_(size_outer, std::vector<T>(size_middle, T())) { scan(in); }
 
 		vector_2d() : size_outer_(size_outer), size_middle_(size_middle), field_(size_outer, std::vector<T>(size_middle, T())) { }
+
+        vector_2d(const vector_3d<T, size_outer, size_middle>& other) : size_outer_(size_outer), size_middle_(size_middle), field_(size_outer, std::vector<T>(size_middle, T())) 
+        { 
+            for (int32_t i = 0; i < size_outer_; ++i)
+            {
+                for (int32_t j = 0; j < size_middle_; ++j)
+                {
+                    field_[i][j] = other[i][j][0];
+                }
+            }
+        }
 
         virtual ~vector_2d() = default;
 
@@ -70,11 +85,13 @@ namespace svirskey
             return field_[index];
         }
 
-        template <class T_, size_t size_outer_, size_t size_middle_, size_t size_inner_>
-        friend class vector_3d;
+        const std::vector<int32_t>& operator [] (const int32_t& index) const
+        {
+            return field_[index];
+        }
 	};
 
-    template <class T, size_t size_outer, size_t size_middle = size_outer, size_t size_inner = size_middle>
+    template <class T, size_t size_outer, size_t size_middle, size_t size_inner>
     requires (std::is_arithmetic_v<T> && (size_outer > 0 && size_middle > 0 && size_inner > 0))
 	class vector_3d
 	{
@@ -113,7 +130,7 @@ namespace svirskey
             {
                 for (int32_t j = 0; j < size_middle_; ++j)
                 {
-                    field_[i][j][0] = other.field_[i][j];
+                    field_[i][j][0] = other[i][j];
                 }
             }
         }
@@ -137,10 +154,35 @@ namespace svirskey
             }
         }
 
+        void print(std::ostream& out) const
+        {
+            out << std::endl;
+            for (int32_t i = 0; i < size_outer_; ++i)
+            {
+                for (int32_t j = 0; j < size_middle_; ++j)
+                {
+                    out << "(";
+                    for (int32_t k = 0; k < field_[i][j].size(); ++k)
+                    {
+                        out << field_[i][j][k];
+                        if (k != field_[i][j].size() - 1)
+                            out << ", ";
+                    }
+                    out << ")\t\t";
+                }
+                out << std::endl;
+            }
+            out << std::endl;
+        }
+
 		std::vector<std::vector<int32_t>>& operator [] (const int32_t& index)
         {
             return field_[index];
         }
 
+        const std::vector<std::vector<int32_t>>& operator [] (const int32_t& index) const
+        {
+            return field_[index];
+        }
 	};
 }
