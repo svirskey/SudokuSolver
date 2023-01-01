@@ -6,8 +6,8 @@
 
 namespace svirskey
 {
-	template<class T, size_t sz_A, size_t sz_B = sz_A>
-    requires (std::is_arithmetic_v<T> && sz_A > 0 && sz_B > 0)
+	template<class T, size_t size_outer, size_t size_middle = size_outer>
+    requires (std::is_arithmetic_v<T> && size_outer > 0 && size_middle > 0)
 	class vector_2d
 	{
     public:
@@ -15,62 +15,67 @@ namespace svirskey
 
 	protected:
 
-		int32_t size_A;
+		int32_t size_outer_;
 
-        int32_t size_B;
+        int32_t size_middle_;
 
-		cont_2d field;
+		cont_2d field_;
 
 	public:
 
-		vector_2d(std::istream& in) : size_A(sz_A), size_B(sz_B), field(sz_A, std::vector<T>(sz_B, T())) { scan(in); }
+		vector_2d(std::istream& in) : size_outer_(size_outer), size_middle_(size_middle), field_(size_outer, std::vector<T>(size_middle, T())) { scan(in); }
 
-		vector_2d() : size_A(sz_A), size_B(sz_B), field(sz_A, std::vector<T>(sz_B, T())) { }
+		vector_2d() : size_outer_(size_outer), size_middle_(size_middle), field_(size_outer, std::vector<T>(size_middle, T())) { }
 
         virtual ~vector_2d() = default;
 
-        int32_t get_size_A() const {return size_A;}
+        int32_t get_size_outer_() const {return size_outer_;}
 
-        int32_t get_size_B() const {return size_B;}
+        int32_t get_size_middle_() const {return size_middle_;}
 
 	    void clear()
         {
-            for (int32_t i = 0; i < size_A; ++i)
+            for (int32_t i = 0; i < size_outer_; ++i)
             {
-                field[i].clear();
+                field_[i].clear();
             }
         }
 
         void scan(std::istream& in)
         {
             clear();
-            for (int32_t i = 0; i < size_A; ++i)
+            for (int32_t i = 0; i < size_outer_; ++i)
             {
-                for (int32_t j = 0; j < size_B; ++j)
+                for (int32_t j = 0; j < size_middle_; ++j)
                 {
-                    in >> field[i][j];
+                    in >> field_[i][j];
                 }
             }
         }
 
 		void print(std::ostream& out) const
         {
-            for (int32_t i = 0; i < size_A; ++i)
+            for (int32_t i = 0; i < size_outer_; ++i)
             {
-                for (int32_t j = 0; j < size_B; ++j)
+                for (int32_t j = 0; j < size_middle_; ++j)
                 {
-                    out << field[i][j] << " ";
+                    out << field_[i][j] << " ";
                 }
                 out << std::endl;
             }
         }
-        
-        template <class T_, size_t sz_A_, size_t sz_B_, size_t sz_C_>
+
+        std::vector<int32_t>& operator [] (const int32_t& index)
+        {
+            return field_[index];
+        }
+
+        template <class T_, size_t size_outer_, size_t size_middle_, size_t size_inner_>
         friend class vector_3d;
 	};
 
-    template <class T, size_t sz_A, size_t sz_B = sz_A, size_t sz_C = sz_B>
-    requires (std::is_arithmetic_v<T> && (sz_A > 0 && sz_B > 0 && sz_C > 0))
+    template <class T, size_t size_outer, size_t size_middle = size_outer, size_t size_inner = size_middle>
+    requires (std::is_arithmetic_v<T> && (size_outer > 0 && size_middle > 0 && size_inner > 0))
 	class vector_3d
 	{
     public:
@@ -78,62 +83,63 @@ namespace svirskey
 
 	protected:
 
-    	int32_t size_A;
+    	int32_t size_outer_;
 
-        int32_t size_B;
+        int32_t size_middle_;
 
-        int32_t size_C;
+        int32_t size_inner_;
 
-        cont_3d field;
+        cont_3d field_;
 
 	public:
 
-        vector_3d(std::istream& in) : size_A(sz_A), size_B(sz_B), size_C(sz_C), 
-                                        field(sz_A, std::vector<std::vector<T>>(sz_B, std::vector<T>(sz_C, T() )))
+        vector_3d(std::istream& in) : size_outer_(size_outer), size_middle_(size_middle), size_inner_(size_inner), 
+                                        field_(size_outer, std::vector<std::vector<T>>(size_middle, std::vector<T>(size_inner, T() )))
         {
-            for (int32_t i = 0; i < size_A; ++i)
+            
+            for (int32_t i = 0; i < size_outer_; ++i)
             {
-                for (int32_t j = 0; j < size_B; ++j)
+                for (int32_t j = 0; j < size_middle_; ++j)
                 {
-                    in >>  field[i][j][0];
+                    in >>  field_[i][j][0];
                 }
             }
         }
 
-		vector_3d(const vector_2d<T, sz_A, sz_B>& other) :  size_A(sz_A), size_B(sz_B), size_C(sz_C), 
-                                                                field(sz_A, std::vector<std::vector<T>>(sz_B, std::vector<T>(sz_C, T() )))
+		vector_3d(const vector_2d<T, size_outer, size_middle>& other) :  size_outer_(size_outer), size_middle_(size_middle), size_inner_(size_inner), 
+                                                                field_(size_outer, std::vector<std::vector<T>>(size_middle, std::vector<T>(size_inner, T() )))
         {
-            for (int32_t i = 0; i < size_A; ++i)
+            for (int32_t i = 0; i < size_outer_; ++i)
             {
-                for (int32_t j = 0; j < size_B; ++j)
+                for (int32_t j = 0; j < size_middle_; ++j)
                 {
-                    field[i][j][0] = other.field[i][j];
+                    field_[i][j][0] = other.field_[i][j];
                 }
             }
         }
 
         virtual ~vector_3d() = default;
 
-        int32_t get_size_A() const {return size_A;}
+        int32_t get_size_outer_() const {return size_outer_;}
 
-        int32_t get_size_B() const {return size_B;}
+        int32_t get_size_middle_() const {return size_middle_;}
 
-        int32_t get_size_C() const {return size_C;}
+        int32_t get_size_inner_() const {return size_inner_;}
 
         void clear()
         {
-            for (int32_t i = 0; i < size_A; ++i) 
+            for (int32_t i = 0; i < size_outer_; ++i) 
             {
-                for (int32_t j = 0; j < size_B; ++j)
+                for (int32_t j = 0; j < size_middle_; ++j)
                 {
-                    field[i][j].clear();
+                    field_[i][j].clear();
                 }
             }
         }
 
 		std::vector<std::vector<int32_t>>& operator [] (const int32_t& index)
         {
-            return field[index];
+            return field_[index];
         }
 
 	};
