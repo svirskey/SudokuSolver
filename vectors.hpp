@@ -78,6 +78,7 @@ namespace svirskey
                 }
                 out << std::endl;
             }
+            out << std::endl;
         }
 
         std::vector<int32_t>& operator [] (const int32_t& index)

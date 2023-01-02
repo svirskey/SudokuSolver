@@ -7,10 +7,13 @@ endif
 
 all:
 	@g++ -std=c++20 -O2 test.cpp -o $(EXEC_NAME)
-	@./$(EXEC_NAME)
+
 log:
 	@g++ -std=c++20 -DLOG_FLAG -O2 test.cpp -o $(EXEC_NAME)
+
+run:
 	@./$(EXEC_NAME)
+
 
 # test: all
 # TODO : current all rule change to test, all rule can read from terminal
