@@ -37,8 +37,6 @@ namespace svirskey
 
 		sudoku_field() : vector_2d<int32_t, sudoku_size>() {}
 
-		//sudoku_field(std::istream& in) : vector_2d<int32_t, sudoku_size>(in) {}
-
 		sudoku_field(const vector_3d<int32_t, sudoku_size, sudoku_size>& other) : vector_2d<int32_t, sudoku_size>(other) {}
 	
 		bool is_solved() const
@@ -211,8 +209,20 @@ namespace svirskey
 			#endif
 			return is_solved();
 		}
-
 		bool is_correct()
+		{
+			for (int32_t i = 0; i < size_; ++i)
+			{
+				for (int32_t j = 0; j < size_; ++j)
+				{
+					if (origin_[i][j] < 0 || origin_[i][j] > 9)
+						return false;
+				}
+			}
+			return true;
+		}
+
+		bool has_variants()
 		{
 			for (int32_t i = 0; i < size_; ++i)
 			{
@@ -232,7 +242,7 @@ namespace svirskey
 				if (apply_simple())
 					return true;
 
-				if (!is_correct())
+				if (!has_variants())
 					return false;
 
 				int32_t i0 = -1, j0 = -1, min = -1;
@@ -307,18 +317,20 @@ namespace svirskey
 		}
 
 		sudoku_field simple_solve()
-		{	
+		{
+			if (!is_correct())
+				return sudoku_field();
 			fill_field();
 			apply_simple();
-			//field_.print();
 			return sudoku_field(field_);
 		}
 
 		sudoku_field solve()
 		{
+			if (!is_correct())
+				return sudoku_field();
 			fill_field();
 			apply_recursion();
-			//field_.print();
 			return sudoku_field(field_);
 		}
 	};
