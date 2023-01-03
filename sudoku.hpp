@@ -37,6 +37,8 @@ namespace svirskey
 
 		sudoku_field() : vector_2d<int32_t, sudoku_size>() {}
 
+		//sudoku_field(std::istream& in) : vector_2d<int32_t, sudoku_size>(in) {}
+
 		sudoku_field(const vector_3d<int32_t, sudoku_size, sudoku_size>& other) : vector_2d<int32_t, sudoku_size>(other) {}
 	
 		bool is_solved() const
@@ -72,6 +74,8 @@ namespace svirskey
 	class sudoku_solver final
 	{	
 	private:
+
+		sudoku_field origin_;
 
 		vector_3d<int32_t, sudoku_size, sudoku_size, 1> field_;
 
@@ -122,6 +126,16 @@ namespace svirskey
 
 		void fill_field()
 		{
+			clear();
+
+			for (int32_t i = 0; i < size_; ++i)
+            {
+                for (int32_t j = 0; j < size_; ++j)
+                {
+                    field_[i][j][0] = origin_[i][j];
+                }
+            }
+
 			for (int32_t i = 0; i < size_; ++i) //  current row
 			{
 				for (int32_t j = 0; j < size_; ++j) // current col
@@ -139,19 +153,29 @@ namespace svirskey
 			}
 		}
 
-		void clear(); // TODO 
+		void clear()
+		{
+			for (int32_t i = 0; i < size_; ++i) //  current row
+			{
+				for (int32_t j = 0; j < size_; ++j) // current col
+				{
+					field_[i][j].clear();
+					field_[i][j].push_back(0);
+				}
+			}
+		}
 
 		bool apply_simple()
 		{
 			int32_t cell = 0;
-
+			
 			while (cell < size_ * size_)
 			{
 				for (int32_t i = 0; i < size_; ++i) //  current row
 				{
 					for (int32_t j = 0; j < size_; ++j) // current col
 					{
-						if (field_[i][j].size() > 1)
+						if (field_[i][j].size() > 1) // TODO do we need this if?
 						{
 							for (int32_t k = 0; k < size_; ++k)
 							{
@@ -185,18 +209,31 @@ namespace svirskey
 			#ifdef LOG_FLAG
 			field_.print(std::cout);
 			#endif
+			return is_solved();
+		}
+
+		bool is_correct()
+		{
+			for (int32_t i = 0; i < size_; ++i)
+			{
+				for (int32_t j = 0; j < size_; ++j)
+				{
+					if (field_[i][j].size() == 0)
+						return false;
+				}
+			}
 			return true;
 		}
 
 		bool apply_recursion()
-		{
+		{		
 			do // TODO refactoring
 			{
-				if (!apply_simple())
-					return false;
-
-				if (is_solved())
+				if (apply_simple())
 					return true;
+
+				if (!is_correct())
+					return false;
 
 				int32_t i0 = -1, j0 = -1, min = -1;
 
@@ -239,7 +276,6 @@ namespace svirskey
 						return false;
 				}
 			}
-
 			for (int32_t i = 0; i < size_; ++i) //  current row
 			{
 				for (int32_t j = 0; j < size_; ++j) // current col
@@ -260,16 +296,21 @@ namespace svirskey
 
 	public:
 
-		sudoku_solver(const vector_2d<int32_t, sudoku_size>& other): field_(other) {}
+		sudoku_solver(const sudoku_field& other): origin_(other), field_() {}
 
-		sudoku_solver(std::istream& in): field_(in) {}
+		sudoku_solver(std::istream& in): origin_(in), field_() {}
 
-		//TODO method fill(vector_2d) which will fill field from this 2d vector, should resize all inner vectors to size of 1, maybe call clear() at the beginning
+		void fill(const sudoku_field& other)
+		{
+			clear();
+			origin_ = other;
+		}
 
 		sudoku_field simple_solve()
-		{
+		{	
 			fill_field();
 			apply_simple();
+			//field_.print();
 			return sudoku_field(field_);
 		}
 
@@ -277,7 +318,14 @@ namespace svirskey
 		{
 			fill_field();
 			apply_recursion();
+			//field_.print();
 			return sudoku_field(field_);
 		}
 	};
 }
+
+/*
+сделать вектор 2д, который будет хранить изначальное поле, в функции солв или софт солв инициализировать филд, ставя флаг заполненности вектора
+при выходе из функции опускать флаг обратно
+
+*/

@@ -68,7 +68,7 @@ namespace svirskey
             }
         }
 
-		void print(std::ostream& out) const
+		void print(std::ostream& out = std::cout) const
         {
             for (int32_t i = 0; i < size_outer_; ++i)
             {
@@ -110,6 +110,9 @@ namespace svirskey
         cont_3d field_;
 
 	public:
+
+        vector_3d() : size_outer_(size_outer), size_middle_(size_middle), size_inner_(size_inner), 
+                                        field_(size_outer, std::vector<std::vector<T>>(size_middle, std::vector<T>(size_inner, T() ))) {}
 
         vector_3d(std::istream& in) : size_outer_(size_outer), size_middle_(size_middle), size_inner_(size_inner), 
                                         field_(size_outer, std::vector<std::vector<T>>(size_middle, std::vector<T>(size_inner, T() )))
@@ -155,7 +158,7 @@ namespace svirskey
             }
         }
 
-        void print(std::ostream& out) const
+        void print(std::ostream& out = std::cout) const
         {
             out << std::endl;
             for (int32_t i = 0; i < size_outer_; ++i)
