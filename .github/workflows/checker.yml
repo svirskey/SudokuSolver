@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - adding_gtest
   pull_request:
     branches:
       - master
