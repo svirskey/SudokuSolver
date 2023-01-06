@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - trying_build_windows
   pull_request:
     branches:
       - master
