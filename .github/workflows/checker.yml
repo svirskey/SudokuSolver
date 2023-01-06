@@ -9,9 +9,20 @@ on:
       - master
 
 jobs:
-  build-and-test:
+  build-and-test-ubuntu-latest:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: make
+      run: make test
+    - name: make repeated
+      run: make test
+
+  build-and-test-windows-latest:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: make
+      run: make test
+    - name: make again 
       run: make test
