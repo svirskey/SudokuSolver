@@ -19,7 +19,7 @@ jobs:
     - name: make repeated
       run: make test
 
-  build-and-test-ubuntu-latest:
+  build-and-test-windows-latest:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
