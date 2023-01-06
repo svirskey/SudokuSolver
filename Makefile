@@ -2,13 +2,20 @@
 # 	mkdir -p build
 # 	cd build && cmake -G "Unix Makefiles" ..
 # 	cd build && cmake --build . 
+MKDIR_COMMAND :=
+ifeq ($(OS),Windows_NT)
+	MKDIR_COMMAND += if not exist ./build mkdir build
+else
+	MKDIR_COMMAND += mkdir -p build
+endif
 
 all: test
 
 test: run_test
 
 build_test:
-	mkdir -p build
+	echo $(shell gcc -dumpmachine)
+	$(MKDIR_COMMAND)
 	cmake -S . -B build
 	cmake --build build
 

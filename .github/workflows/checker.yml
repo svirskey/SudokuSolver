@@ -4,13 +4,16 @@ on:
   push:
     branches:
       - master
+      - trying_build_windows
   pull_request:
     branches:
       - master
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on:
+      - ubuntu-latest
+      - windows-latest
     steps:
     - uses: actions/checkout@v3
     - name: make
