@@ -1,7 +1,9 @@
 *.o
+a.out
 result.exe
 result
 *.s
 *.asm
 output.txt
 Output.txt
+build/
