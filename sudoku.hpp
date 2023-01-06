@@ -8,6 +8,7 @@ namespace svirskey
 {
 	const int32_t sudoku_size = 9;
 	const int32_t sudoku_size_mini = 6;
+	
 	enum class solve_status
 	{
 		not_solved,
@@ -370,11 +371,4 @@ namespace svirskey
 			return sudoku_field();
 		}
 	};
-	//TODO foo : enum_status status() const;
 }
-
-/*
-������� ������ 2�, ������� ����� ������� ����������� ����, � ������� ���� ��� ���� ���� ���������������� ����, ����� ���� ������������� �������
-��� ������ �� ������� �������� ���� �������
-
-*/

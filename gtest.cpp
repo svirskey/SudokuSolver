@@ -3,7 +3,7 @@
 	#include <fstream>
 	#include "sudoku.hpp"
 
-	TEST(Correct_9x9_common, no_need_recursion) {
+	TEST(Valid_9x9_common, no_need_recursion) {
 	std::ifstream input_fin("../test_data/simple.txt");
 	svirskey::sudoku_solver solver(input_fin);
 	svirskey::sudoku_field result_field = solver.solve();
@@ -15,7 +15,7 @@
 	EXPECT_EQ(result_field, expected_field);
 	}
 
-	TEST(Correct_9x9_common, need_recursion_1) {
+	TEST(Valid_9x9_common, need_recursion_1) {
 	std::ifstream input_fin("../test_data/hard.txt");
 	svirskey::sudoku_solver solver(input_fin);
 	svirskey::sudoku_field result_field = solver.solve();
@@ -27,7 +27,7 @@
 	EXPECT_EQ(result_field, expected_field);
 	}
 
-	TEST(Correct_9x9_common, need_recursion_2) {
+	TEST(Valid_9x9_common, need_recursion_2) {
 	std::ifstream input_fin("../test_data/crazy.txt");
 	svirskey::sudoku_solver solver(input_fin);
 	svirskey::sudoku_field result_field = solver.solve();
