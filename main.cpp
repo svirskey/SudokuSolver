@@ -1,10 +1,13 @@
 ﻿#include <iostream>
+#include <fstream>
 #include "sudoku.hpp"
 
 int main(int argc, char* argv[])
 {
-	const int size = 9;
+	std::ifstream fin("./test_data/empty.txt");
+	std::ofstream fout("output.txt");
 
-	svirskey::solver solver(size);
-	// TODO
+	svirskey::sudoku_solver solver(fin);
+	svirskey::sudoku_field  result = solver.solve();
+	result.print(fout);
 }

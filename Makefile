@@ -1,19 +1,28 @@
-EXEC_NAME :=
-ifeq ($(OS),Windows_NT)
-	EXEC_NAME = result.exe
-else
-	EXEC_NAME = result
-endif
+# all: 
+# 	mkdir -p build
+# 	cd build && cmake -G "Unix Makefiles" ..
+# 	cd build && cmake --build . 
 
-all:
-	@g++ -std=c++20 -O2 test.cpp -o $(EXEC_NAME)
+all: test
 
-log:
-	@g++ -std=c++20 -DLOG_FLAG -O2 test.cpp -o $(EXEC_NAME)
+test: run_test
 
-run:
-	@./$(EXEC_NAME)
+build_test:
+	mkdir -p build
+	cmake -S . -B build
+	cmake --build build
 
+run_test: build_test
+	cd build && ctest
+
+#main:
+#	g++ -std=c++20 main.cpp && ./a.out
+
+clean:
+	rm -rf ./build
+	rm -f a.out
+	rm -f *.o
+	rm -f output.txt
 
 # test: all
 # TODO : current all rule change to test, all rule can read from terminal

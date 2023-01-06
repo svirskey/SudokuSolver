@@ -8,6 +8,13 @@ namespace svirskey
 {
 	const int32_t sudoku_size = 9;
 	const int32_t sudoku_size_mini = 6;
+	enum class solve_status
+	{
+		not_solved,
+		solved_no_recursion,
+		solved_with_recursion,
+		invalid
+	};
 
 	class sudoku_field final : public vector_2d<int32_t, sudoku_size>
 	{
@@ -67,7 +74,22 @@ namespace svirskey
 			}
 			return true;
 		}
+
+		friend bool operator == (const sudoku_field& lhs, const sudoku_field& rhs);
 	};
+
+	bool operator == (const sudoku_field& lhs, const sudoku_field& rhs)
+	{
+		for (int32_t i = 0; i < sudoku_size; ++i)
+		{
+			for (int32_t j = 0; j < sudoku_size; ++j)
+			{
+				if (lhs.field_[i][j] != rhs.field_[i][j])
+					return false;
+			}
+		}
+		return true;
+	}
 
 	class sudoku_solver final
 	{	
@@ -78,6 +100,8 @@ namespace svirskey
 		vector_3d<int32_t, sudoku_size, sudoku_size, 1> field_;
 
 		int32_t size_ = sudoku_size;
+
+		solve_status status = solve_status::not_solved;
 
 		void erase_with_square(int32_t cell, const int32_t str, const int32_t col)
 		{
@@ -310,34 +334,47 @@ namespace svirskey
 
 		sudoku_solver(std::istream& in): origin_(in), field_() {}
 
-		void fill(const sudoku_field& other)
+		solve_status get_status() const
 		{
-			clear();
-			origin_ = other;
+			return status;
 		}
 
-		sudoku_field simple_solve()
+		void fill(const sudoku_field& other)
 		{
-			if (!is_correct())
-				return sudoku_field();
-			fill_field();
-			apply_simple();
-			return sudoku_field(field_);
+			status = solve_status::not_solved;
+			clear();
+			origin_ = other;
 		}
 
 		sudoku_field solve()
 		{
 			if (!is_correct())
+			{
+				status = solve_status::invalid;
 				return sudoku_field();
+			}	
 			fill_field();
+			apply_simple();
+			if (is_solved())
+			{
+				status = solve_status::solved_no_recursion;
+				return sudoku_field(field_);
+			}
 			apply_recursion();
-			return sudoku_field(field_);
+			if (is_solved())
+			{
+				status = solve_status::solved_with_recursion;
+				return sudoku_field(field_);
+			}
+			status = solve_status::invalid;
+			return sudoku_field();
 		}
 	};
+	//TODO foo : enum_status status() const;
 }
 
 /*
-сделать вектор 2д, который будет хранить изначальное поле, в функции солв или софт солв инициализировать филд, ставя флаг заполненности вектора
-при выходе из функции опускать флаг обратно
+пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 2пїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
 */
